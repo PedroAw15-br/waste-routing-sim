@@ -78,7 +78,7 @@ python -m wrsim.experiments_real_extra --out results_real_extra --workers 8
 python -m wrsim.analysis_real --res results_real --extra results_real_extra --data results --fig figures
 ```
 
-O parâmetro `landfill_latlon` posiciona a saída da cidade no nó da malha mais próximo da direção do destino.
+A saída urbana (`exit_latlon`) é o ponto em que a rota do OSRM até o destino cruza a borda urbana do modelo, e `landfill_km` é o restante dessa rota (Santa Helena: PR-495, ao sul, 111,6 km; São Miguel do Iguaçu: PR-497, ao norte, 8,1 km). A garagem, cuja localização não é pública, fica no extremo oposto à saída.
 
 ## Estrutura
 
