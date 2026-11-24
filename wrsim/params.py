@@ -11,6 +11,10 @@ from dataclasses import dataclass, asdict
 class Params:
     # ---------------- Cidade sintética ----------------
     city_seed: int = 2026
+    osm_file: str = ""         # malha viária real (JSON do Overpass/OpenStreetMap); vazio = cidade sintética
+    census_file: str = ""      # setores censitários (GeoPackage do IBGE, Censo 2022); vazio = população hipotética
+    census_mun: str = "4123501" # código IBGE do município (Santa Helena, PR)
+    osm_center: tuple = (-24.8591735, -54.3328813)  # (lat, lon) do centro urbano usado no recorte
     grid_nx: int = 22            # nós na direção x da malha base
     grid_ny: int = 20            # nós na direção y
     block_m: float = 110.0       # comprimento médio da quadra (m)
@@ -35,6 +39,8 @@ class Params:
     peak_mult: float = 1.40      # multiplicador nos eventos de pico (centro)
     use_peaks: bool = True       # False = período sem eventos de pico (sensibilidade)
     gen_scale: float = 1.0       # escala global (análise de sensibilidade)
+    drift_share: float = 0.0     # fração dos pontos cuja geração muda sem aviso no início da avaliação
+    drift_mag: float = 0.30      # tamanho da mudança (±30% na média do ponto, sinal sorteado)
 
     # ---------------- Calendário ----------------
     warmup_days: int = 7

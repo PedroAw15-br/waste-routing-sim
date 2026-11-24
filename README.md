@@ -24,6 +24,28 @@ Este repositório acompanha o artigo *"Sensoriamento IoT e Roteirização Dinâm
 - **Verificação**: cada simulação confere o balanço de massa (gerado = coletado + transbordado + variação do estoque).
 - **Economia**: custo total de propriedade e VPL em 5 anos (10% a.a.), com a fração λ dos turnos-equipe liberados que é convertida em economia e o ponto de equilíbrio λ\*.
 
+## Caso real: Santa Helena (PR) e qualidade do histórico
+
+Além da cidade sintética, o modelo roda sobre a malha viária real da sede urbana de Santa Helena (PR):
+
+- `results/osm_santa_helena.json`: vias trafegáveis baixadas pela API Overpass em 24/11/2026. Malha viária © colaboradores do OpenStreetMap, sob a licença ODbL (https://www.openstreetmap.org/copyright).
+- `results/setores_santa_helena_2022.geojson`: setores censitários do município, com a população (`v0001`) do Censo Demográfico 2022, extraídos da malha com atributos do IBGE (`PR_setores_CD2022.gpkg`).
+
+Com os setores, os pontos de coleta ficam em cruzamentos dentro dos setores urbanos da sede, cerca de 1 por 60 habitantes, e a geração de cada ponto é proporcional à população do setor. A posição real dos contêineres, a garagem e a saída para o aterro não são públicas, por isso foram estimadas.
+
+```bash
+# malha real com demanda hipotética (280 pontos, 17 mil hab.)
+python -m wrsim.experiments_osm --osm results/osm_santa_helena.json --out results_osm_demanda_hipotetica
+# malha real e população do Censo 2022
+python -m wrsim.experiments_osm --osm results/osm_santa_helena.json --census results/setores_santa_helena_2022.geojson --out results_santa_helena
+python -m wrsim.analysis_osm --res results_santa_helena --fig figures
+# P0 com 7, 30 e 90 dias de histórico e mudança inesperada na geração, nas três configurações
+python -m wrsim.experiments_hist --out results_hist
+python -m wrsim.analysis_hist --res results_hist
+```
+
+Políticas extras: `P0H<dias>` é P0 com a taxa de cada ponto estimada a partir de `<dias>` dias de pesagem, com erro amostral. O parâmetro `drift_share` muda sem aviso a geração de uma fração dos pontos a partir do início da avaliação.
+
 ## Estrutura
 
 ```
@@ -35,7 +57,9 @@ wrsim/
   benchmark.py    comparação AG × OR-Tools
   experiments.py  experimento principal e análises de sensibilidade (600 simulações)
   economics.py    custos, VPL e ponto de equilíbrio
-  analysis.py     indicadores, IC95%, Wilcoxon, tamanho de efeito, figuras e summary.json
+  analysis.py     indicadores, IC95%, diferenças pareadas, economia, figuras e summary.json
+  experiments_osm.py / analysis_osm.py    malha real (OpenStreetMap) e população do Censo 2022
+  experiments_hist.py / analysis_hist.py  P0 com histórico limitado e mudança na geração
 results/          saídas brutas (JSON) da execução usada no artigo
 figures/          figuras do artigo (PNG)
 ```

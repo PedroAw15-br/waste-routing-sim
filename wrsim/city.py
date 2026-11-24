@@ -102,8 +102,93 @@ def _build_graph(p: Params, rng):
     return coords, edges, edge_len
 
 
+URBAN_WAYS = {"residential", "living_street", "tertiary", "unclassified", "secondary"}
+
+
+def _build_graph_osm(p: Params):
+    """Malha viária real a partir de um JSON do Overpass (OpenStreetMap).
+
+    Vias de serviço (estacionamentos, acessos internos) são descartadas; o grafo é
+    tratado como não orientado, como na cidade sintética. Devolve também os
+    cruzamentos de ruas urbanas (candidatos a ponto de coleta) e os nós de rodovia."""
+    import json
+    el = json.load(open(p.osm_file, encoding="utf-8"))["elements"]
+    lat0, lon0 = p.osm_center
+    nodes = {e["id"]: (e["lat"], e["lon"]) for e in el if e["type"] == "node"}
+    ways = [e for e in el if e["type"] == "way" and e["tags"].get("highway") != "service"]
+    ids = sorted({n for w in ways for n in w["nodes"]})
+    ix = {k: i for i, k in enumerate(ids)}
+    kx = 111320.0 * np.cos(np.radians(lat0))
+    coords = np.array([[(nodes[k][1] - lon0) * kx, (nodes[k][0] - lat0) * 110540.0] for k in ids])
+    E, urban, road = set(), set(), set()
+    for w in ways:
+        hw = w["tags"].get("highway", "")
+        for a, b in zip(w["nodes"][:-1], w["nodes"][1:]):
+            if a != b:
+                E.add((min(ix[a], ix[b]), max(ix[a], ix[b])))
+        (urban if hw in URBAN_WAYS else road if hw.startswith(("primary", "trunk")) else set()).update(ix[n] for n in w["nodes"])
+    edges = np.array(sorted(E))
+    V = len(coords)
+    A = csr_matrix((np.ones(len(edges)), (edges[:, 0], edges[:, 1])), shape=(V, V))
+    _, lab = connected_components(A, directed=False)
+    main = lab == np.bincount(lab).argmax()
+    remap = -np.ones(V, dtype=int)
+    remap[main] = np.arange(main.sum())
+    edges = remap[edges[main[edges[:, 0]] & main[edges[:, 1]]]]
+    keep = np.where(main)[0]
+    coords = coords[main]
+    urban = np.array(sorted(remap[i] for i in urban if main[i]))
+    road = np.array(sorted(remap[i] for i in road if main[i]))
+    edge_len = np.linalg.norm(coords[edges[:, 0]] - coords[edges[:, 1]], axis=1)
+    deg = np.bincount(edges.ravel(), minlength=len(coords))
+    cross = urban[deg[urban] >= 3]
+    return coords, edges, edge_len, cross, road
+
+
 def build_city(p: Params) -> City:
     rng = np.random.default_rng(p.city_seed)
+    if p.osm_file:
+        coords, edges, edge_len, cross, road = _build_graph_osm(p)
+        V = len(coords)
+        center = np.zeros(2)                      # origem = centro urbano informado
+        # saída para o aterro: ponto em que a rodovia principal (na direção do seu
+        # trecho mais longo) cruza a borda urbana, tomada como 1,1 × o percentil 95
+        # da distância dos cruzamentos urbanos ao centro;
+        # garagem: cruzamento urbano mais periférico no lado oposto
+        dr = np.linalg.norm(coords[road], axis=1)
+        far = coords[road[np.argmax(dr)]] / dr.max()
+        same = road[(coords[road] @ far) / np.maximum(dr, 1e-9) > 0.8]
+        edge_r = 1.1 * np.percentile(np.linalg.norm(coords[cross], axis=1), 95)
+        exit_ = int(same[np.argmin(np.abs(np.linalg.norm(coords[same], axis=1) - edge_r))])
+        pop_w, pop_total = None, None
+        if p.census_file:
+            # pontos só em cruzamentos dentro dos setores urbanos do Censo 2022, cerca de
+            # um ponto para cada (urban_pop / n_points) habitantes de cada setor
+            setores = _census_sectors(p)
+            hab_por_ponto = p.urban_pop / p.n_points
+            pts, wts = [], []
+            for poly, pop in setores:
+                inside = cross[_contains(poly, coords[cross])]
+                if pop <= 0 or len(inside) == 0:
+                    continue
+                k = int(min(len(inside), max(1, round(pop / hab_por_ponto))))
+                sel = rng.choice(inside, size=k, replace=False)
+                pts.extend(sel.tolist()); wts.extend([pop / k] * k)
+            urban_cross = np.array(sorted(set(pts)))
+            opp = urban_cross[(coords[urban_cross] @ coords[exit_]) < 0]
+            garage = int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
+            keep = [i for i, n in enumerate(pts) if n not in (garage, exit_)]
+            order = np.argsort(np.array(pts)[keep])
+            point_node = np.array(pts)[keep][order]
+            pop_w = np.array(wts)[keep][order]
+            pop_total = float(sum(pop for _, pop in setores))
+            return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center,
+                                pop_w=pop_w, pop_total=pop_total)
+        opp = cross[(coords[cross] @ coords[exit_]) < 0]
+        garage = int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
+        candidates = np.setdiff1d(cross, [garage, exit_])
+        point_node = np.sort(rng.choice(candidates, size=p.n_points, replace=False))
+        return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center)
     coords, edges, edge_len = _build_graph(p, rng)
     V = len(coords)
     center = coords.mean(axis=0)
@@ -114,14 +199,57 @@ def build_city(p: Params) -> City:
 
     candidates = np.setdiff1d(np.arange(V), [garage, exit_])
     point_node = np.sort(rng.choice(candidates, size=p.n_points, replace=False))
+    return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center)
+
+
+def _census_sectors(p):
+    """Setores urbanos do município (Censo 2022) na área da malha: [(polígono em metros, população)]."""
+    import sqlite3
+    from shapely import wkb
+    from shapely.ops import transform
+    lat0, lon0 = p.osm_center
+    kx = 111320.0 * np.cos(np.radians(lat0))
+    if p.census_file.endswith((".geojson", ".json")):
+        import json
+        from shapely.geometry import shape
+        fc = json.load(open(p.census_file, encoding="utf-8"))
+        rows = [(shape(f["geometry"]), f["properties"]["v0001"]) for f in fc["features"]
+                if f["properties"]["CD_MUN"] == p.census_mun and f["properties"]["SITUACAO"] == "Urbana"]
+    else:
+        con = sqlite3.connect(p.census_file)
+        tab = con.execute("select table_name from gpkg_contents").fetchone()[0]
+        raw = con.execute(f'select geom, v0001 from "{tab}" where CD_MUN=? and SITUACAO="Urbana"', (p.census_mun,)).fetchall()
+        rows = []
+        for g, pop in raw:
+            env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}[(g[3] >> 1) & 7]
+            rows.append((wkb.loads(bytes(g[8 + env:])), pop))
+    out = []
+    for g, pop in rows:
+        geom = transform(lambda x, y, z=None: ((x - lon0) * kx, (y - lat0) * 110540.0), g)
+        c = geom.centroid
+        if abs(c.x) < 4000 and abs(c.y) < 4000:          # sede urbana (exclui outros distritos)
+            out.append((geom, int(pop or 0)))
+    return out
+
+
+def _contains(poly, xy):
+    from shapely import contains_xy
+    return contains_xy(poly, xy[:, 0], xy[:, 1])
+
+
+def _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center,
+                 pop_w=None, pop_total=None):
+    V = len(coords)
     pc = coords[point_node]
     central = np.linalg.norm(pc - center, axis=1) <= p.central_radius_m
     sector = np.where(central, 0, np.where(pc[:, 0] < np.median(pc[~central, 0]), 1, 2))
 
     # geração média por ponto (kg/dia): população heterogênea + centro comercial
-    w = rng.lognormal(0.0, p.pop_sigma, size=p.n_points)
+    w = rng.lognormal(0.0, p.pop_sigma, size=len(point_node))
+    if pop_w is not None:                       # população do setor censitário de cada ponto
+        w = pop_w * w
     w = w * np.where(central, p.central_mult, 1.0)
-    total = p.urban_pop * p.per_capita_kg
+    total = (pop_total if pop_total is not None else p.urban_pop) * p.per_capita_kg
     mean_kg = total * w / w.sum()
 
     # dimensionamento dos contêineres para a prática setorizada:

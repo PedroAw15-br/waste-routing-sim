@@ -27,7 +27,7 @@ from .routing import solve_tsp, evaluate_day
 
 HOLIDAYS = (35, 52)                       # segunda (sem. 6) e quinta (sem. 8)
 PEAKS = ((25, 26, 27), (33, 34, 35), (52, 53, 54, 55))
-POLICIES = ("B1", "B2", "P1", "P0", "P0S", "P2", "P2I", "P2M")
+POLICIES = ("B1", "B2", "P1", "P0", "P0S", "P2", "P2I", "P2M")  # + "P0H<dias>": P0 com taxa estimada
 POLICY_NAMES = {
     "B1": "Rota fixa diária (todos os pontos)",
     "B2": "Rota fixa setorizada (centro diário, bairros em dias alternados)",
@@ -74,6 +74,12 @@ def make_demand(city, p: Params, rep: int):
         for d in ev:
             if d < T:
                 gen[d, city.central] *= p.peak_mult
+    if p.drift_share > 0:
+        # mudança inesperada: parte dos pontos passa a gerar ±drift_mag a partir da avaliação
+        r2 = np.random.default_rng([rep, 4])
+        idx = r2.choice(city.n, size=int(round(p.drift_share * city.n)), replace=False)
+        sign = r2.choice([-1.0, 1.0], size=len(idx))
+        gen[p.warmup_days:, idx] *= (1.0 + sign * p.drift_mag)[None, :]
     return gen
 
 
@@ -154,8 +160,12 @@ def simulate(city, p: Params, policy: str, rep: int, routes: dict,
     sigma, miss, share = p.sensor_sigma, p.sensor_miss, p.sensor_share
     maygo = False
     sector_rate = False
+    hist_days = 0
     if policy == "P0":
         core, share = "P2", 0.0
+    elif policy.startswith("P0H"):
+        # taxa histórica estimada com hist_days dias de pesagem por ponto (com erro amostral)
+        core, share, hist_days = "P2", 0.0, int(policy[3:])
     elif policy == "P0S":
         core, share, sector_rate = "P2", 0.0, True
     elif policy == "P2I":
@@ -173,6 +183,10 @@ def simulate(city, p: Params, policy: str, rep: int, routes: dict,
     anc_day = np.zeros(n, dtype=int)
     # conhecimento histórico usado nos pontos sem sensor (taxa média e CV por ponto)
     rate_hist = city.mean_kg * p.gen_scale / cap
+    if hist_days > 0:
+        cv0 = np.where(city.central, p.cv_cen, p.cv_res)
+        err = np.random.default_rng([rep, 3]).standard_normal(n) * cv0 / np.sqrt(hist_days)
+        rate_hist = rate_hist * np.maximum(1.0 + err, 0.2)
     cv_pt = np.where(city.central, p.cv_cen, p.cv_res)
     if sector_rate:
         # só a pesagem por setor é conhecida: cada ponto recebe a taxa relativa
