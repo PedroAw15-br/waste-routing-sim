@@ -157,6 +157,11 @@ def build_city(p: Params) -> City:
         # garagem: cruzamento urbano mais periférico no lado oposto
         dr = np.linalg.norm(coords[road], axis=1)
         far = coords[road[np.argmax(dr)]] / dr.max()
+        if p.landfill_latlon:
+            lat0, lon0 = p.osm_center
+            v = np.array([(p.landfill_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
+                          (p.landfill_latlon[0] - lat0) * 110540.0])
+            far = v / np.linalg.norm(v)
         same = road[(coords[road] @ far) / np.maximum(dr, 1e-9) > 0.8]
         edge_r = 1.1 * np.percentile(np.linalg.norm(coords[cross], axis=1), 95)
         exit_ = int(same[np.argmin(np.abs(np.linalg.norm(coords[same], axis=1) - edge_r))])

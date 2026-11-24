@@ -14,6 +14,7 @@ class Params:
     osm_file: str = ""         # malha viária real (JSON do Overpass/OpenStreetMap); vazio = cidade sintética
     census_file: str = ""      # setores censitários (GeoPackage do IBGE, Censo 2022); vazio = população hipotética
     census_mun: str = "4123501" # código IBGE do município (Santa Helena, PR)
+    landfill_latlon: tuple = ()  # (lat, lon) do aterro; define a direção da saída urbana na malha real
     osm_center: tuple = (-24.8591735, -54.3328813)  # (lat, lon) do centro urbano usado no recorte
     grid_nx: int = 22            # nós na direção x da malha base
     grid_ny: int = 20            # nós na direção y

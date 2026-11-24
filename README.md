@@ -57,6 +57,22 @@ python -m wrsim.experiments_rigor --out results_rigor
 python -m wrsim.analysis_rigor --res results_rigor --fig figures
 ```
 
+## Casos reais com dados do SINISA 2023 e limiar de variabilidade
+
+`wrsim/experiments_real.py` / `analysis_real.py` rodam dois municípios do oeste do Paraná com destino, distância e frota declarados ao SINISA (Diagnóstico do Manejo de RSU, ano de referência 2023):
+
+- Santa Helena: coleta contratada, aterro sanitário em Cascavel a 114 km por estrada (OSRM), sem estação de transbordo;
+- São Miguel do Iguaçu: equipe própria, aterro controlado municipal a 11,7 km (`results/osm_sao_miguel.json`, `results/setores_sao_miguel_2022.geojson`).
+
+Para cada caso: experimento principal (30 replicações), curva em z de P0 e P2 para a métrica *S* e uma varredura do CV diário da geração (0,20 a 0,90, 20 replicações por ponto). O resultado `limiar` em `summary_real.json` é o CV a partir do qual os sensores se pagam sobre P0 (λ∗ = 100%, mão de obra valorada por hora).
+
+```bash
+python -m wrsim.experiments_real --out results_real --workers 8
+python -m wrsim.analysis_real --res results_real --data results --fig figures
+```
+
+O parâmetro `landfill_latlon` posiciona a saída da cidade no nó da malha mais próximo da direção do destino.
+
 ## Estrutura
 
 ```
