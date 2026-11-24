@@ -46,6 +46,17 @@ python -m wrsim.analysis_hist --res results_hist
 
 Políticas extras: `P0H<dias>` é P0 com a taxa de cada ponto estimada a partir de `<dias>` dias de pesagem, com erro amostral. O parâmetro `drift_share` muda sem aviso a geração de uma fração dos pontos a partir do início da avaliação.
 
+## Calibração com dados públicos e rigor estatístico
+
+- `results/wyndham_daily.csv`: nível diário de enchimento de 32 lixeiras públicas de Wyndham (Victoria, Austrália), 2018-2021, da base *Wyndham Smart Bin Daily Fill level* (Wyndham City Council, data.gov.au, licença CC BY 2.5 AU). `wrsim/calibracao.py` estima a taxa diária, o coeficiente de variação da geração (pelo enchimento acumulado em cada ciclo entre coletas, descontando o arredondamento em degraus de 20%) e o fator de fim de semana. Também verifica a regra de previsão: com 30 ou 7 dias de histórico, mede com que frequência o nível real supera a previsão com z = 1,645, 2,33 e 3,09, com e sem a leitura do dia.
+- `wrsim/experiments_rigor.py` / `analysis_rigor.py`: experimento principal com 100 replicações (cidade sintética e Santa Helena), cenário com o CV calibrado (0,88) e sensibilidade global com 150 combinações de 13 premissas por hipercubo latino, analisadas por correlação parcial de postos (PRCC).
+
+```bash
+python -m wrsim.calibracao --data results/wyndham_daily.csv --out results/calibracao.json
+python -m wrsim.experiments_rigor --out results_rigor
+python -m wrsim.analysis_rigor --res results_rigor --fig figures
+```
+
 ## Estrutura
 
 ```
@@ -60,6 +71,8 @@ wrsim/
   analysis.py     indicadores, IC95%, diferenças pareadas, economia, figuras e summary.json
   experiments_osm.py / analysis_osm.py    malha real (OpenStreetMap) e população do Censo 2022
   experiments_hist.py / analysis_hist.py  P0 com histórico limitado e mudança na geração
+  calibracao.py   calibração e verificação da regra com dados públicos (Wyndham)
+  experiments_rigor.py / analysis_rigor.py  100 replicações, cenário calibrado e sensibilidade global
 results/          saídas brutas (JSON) da execução usada no artigo
 figures/          figuras do artigo (PNG)
 ```

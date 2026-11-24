@@ -1,0 +1,327 @@
+{
+ "fonte": "Wyndham City Council, Smart Bin Daily Fill level (data.gov.au, CC BY 2.5 AU)",
+ "n_lixeiras": 32,
+ "n_dias": 966,
+ "periodo": [
+  "2018-06-26",
+  "2021-05-03"
+ ],
+ "cv": {
+  "mediana": 0.8770401489529043,
+  "p25": 0.756960768715684,
+  "p75": 1.4198741897305667,
+  "mediana_geral": 0.8996002003849455,
+  "mediana_reciclavel": 0.8178642950956059
+ },
+ "taxa_dia": {
+  "mediana": 0.1269900614497116,
+  "p25": 0.09184329602286259,
+  "p75": 0.15338298685000273
+ },
+ "semana": {
+  "media_por_dia_semana": [
+   0.8556418340793063,
+   1.1172960580762954,
+   1.0773592436400024,
+   1.089238993312439,
+   0.9345577667440659,
+   0.8236380943633723,
+   1.102268009784518
+  ],
+  "fator_fim_de_semana": 0.948891636456634
+ },
+ "backtest_30d": {
+  "leitura|z=1.645": {
+   "excedencia": 0.046665352990702756,
+   "n": 55823,
+   "nominal": 0.04998490553912138
+  },
+  "leitura|z=2.33": {
+   "excedencia": 0.01864822743313688,
+   "n": 55823,
+   "nominal": 0.009903075559164254
+  },
+  "leitura|z=3.09": {
+   "excedencia": 0.006932626336814574,
+   "n": 55823,
+   "nominal": 0.0010007824766140594
+  },
+  "sem_leitura|z=1.645": {
+   "excedencia": 0.008383641151496694,
+   "n": 55823,
+   "nominal": 0.04998490553912138
+  },
+  "sem_leitura|z=2.33": {
+   "excedencia": 0.0030274259713738063,
+   "n": 55823,
+   "nominal": 0.009903075559164254
+  },
+  "sem_leitura|z=3.09": {
+   "excedencia": 0.0009673432097880802,
+   "n": 55823,
+   "nominal": 0.0010007824766140594
+  },
+  "eam_leitura": 0.1869855363200402,
+  "eam_sem_leitura": 0.5048368467103952
+ },
+ "backtest_7d": {
+  "leitura|z=1.645": {
+   "excedencia": 0.0494844990480296,
+   "n": 55674,
+   "nominal": 0.04998490553912138
+  },
+  "leitura|z=2.33": {
+   "excedencia": 0.024122570679311707,
+   "n": 55674,
+   "nominal": 0.009903075559164254
+  },
+  "leitura|z=3.09": {
+   "excedencia": 0.011657146962675575,
+   "n": 55674,
+   "nominal": 0.0010007824766140594
+  },
+  "sem_leitura|z=1.645": {
+   "excedencia": 0.015590760498616948,
+   "n": 55674,
+   "nominal": 0.04998490553912138
+  },
+  "sem_leitura|z=2.33": {
+   "excedencia": 0.008028882422674858,
+   "n": 55674,
+   "nominal": 0.009903075559164254
+  },
+  "sem_leitura|z=3.09": {
+   "excedencia": 0.0051190861084168555,
+   "n": 55674,
+   "nominal": 0.0010007824766140594
+  },
+  "eam_leitura": 0.21232611785958053,
+  "eam_sem_leitura": 0.6567131874842836
+ },
+ "lixeiras": {
+  "1510830": {
+   "desc": "Bendigo Bank G Werribee - General Waste",
+   "ciclos": 83,
+   "taxa_dia": 0.1096551724137931,
+   "cv": 1.3263184023301342,
+   "ciclo_medio_dias": 3.4939759036144578
+  },
+  "1511190": {
+   "desc": "Aldi G Point Cook",
+   "ciclos": 125,
+   "taxa_dia": 0.1766016713091922,
+   "cv": 0.6599871468650732,
+   "ciclo_medio_dias": 2.872
+  },
+  "1511191": {
+   "desc": "Cash Converters G Werribee",
+   "ciclos": 100,
+   "taxa_dia": 0.14924471299093656,
+   "cv": 0.8040926199480944,
+   "ciclo_medio_dias": 3.31
+  },
+  "1511192": {
+   "desc": "General Practice R Werribee",
+   "ciclos": 117,
+   "taxa_dia": 0.16213333333333332,
+   "cv": 0.7717385098684738,
+   "ciclo_medio_dias": 3.2051282051282053
+  },
+  "1511193": {
+   "desc": "Wedge St Piazza G Werribee",
+   "ciclos": 87,
+   "taxa_dia": 0.08239845261121856,
+   "cv": 1.4991769589748676,
+   "ciclo_medio_dias": 5.942528735632184
+  },
+  "1511194": {
+   "desc": "Ally Fashion G Point Cook",
+   "ciclos": 70,
+   "taxa_dia": 0.06572769953051644,
+   "cv": 1.3934399333157996,
+   "ciclo_medio_dias": 6.085714285714285
+  },
+  "1511195": {
+   "desc": "Nandos G Point Cook",
+   "ciclos": 117,
+   "taxa_dia": 0.11779661016949153,
+   "cv": 1.224127568095378,
+   "ciclo_medio_dias": 4.034188034188034
+  },
+  "1511196": {
+   "desc": "Woolworths G Point Cook",
+   "ciclos": 81,
+   "taxa_dia": 0.17885462555066078,
+   "cv": 0.6779432444437471,
+   "ciclo_medio_dias": 2.802469135802469
+  },
+  "1511197": {
+   "desc": "Ballan House G Werribee",
+   "ciclos": 51,
+   "taxa_dia": 0.04582338902147971,
+   "cv": 1.0095639487318362,
+   "ciclo_medio_dias": 8.215686274509803
+  },
+  "1511198": {
+   "desc": "79 Watton St G Werribee",
+   "ciclos": 113,
+   "taxa_dia": 0.14200542005420053,
+   "cv": 0.6594418253904946,
+   "ciclo_medio_dias": 3.265486725663717
+  },
+  "1511199": {
+   "desc": "Coles G Point Cook",
+   "ciclos": 83,
+   "taxa_dia": 0.12847222222222224,
+   "cv": 1.3869519614830148,
+   "ciclo_medio_dias": 3.4698795180722892
+  },
+  "1511200": {
+   "desc": "Watton Plaza G Werribee",
+   "ciclos": 114,
+   "taxa_dia": 0.1336842105263158,
+   "cv": 0.681464561050529,
+   "ciclo_medio_dias": 3.3333333333333335
+  },
+  "1511201": {
+   "desc": "Commercial Hotel G Werribee",
+   "ciclos": 91,
+   "taxa_dia": 0.09411764705882353,
+   "cv": 1.0256612625132753,
+   "ciclo_medio_dias": 4.857142857142857
+  },
+  "1511203": {
+   "desc": "Proven Training G Werribee",
+   "ciclos": 112,
+   "taxa_dia": 0.14010416666666667,
+   "cv": 0.8544800975208632,
+   "ciclo_medio_dias": 3.4285714285714284
+  },
+  "1511204": {
+   "desc": "Hockingstuart G Werribee",
+   "ciclos": 111,
+   "taxa_dia": 0.1255079006772009,
+   "cv": 0.8996002003849455,
+   "ciclo_medio_dias": 3.990990990990991
+  },
+  "1511205": {
+   "desc": "Park Hotel G Werribee",
+   "ciclos": 99,
+   "taxa_dia": 0.12281553398058251,
+   "cv": 0.7955329852631008,
+   "ciclo_medio_dias": 4.161616161616162
+  },
+  "1511206": {
+   "desc": "Watton Plaza R Werribee",
+   "ciclos": 45,
+   "taxa_dia": 0.16390977443609023,
+   "cv": 0.7644268686447077,
+   "ciclo_medio_dias": 2.9555555555555557
+  },
+  "1511207": {
+   "desc": "Commercial Hotel R Werribee",
+   "ciclos": 29,
+   "taxa_dia": 0.04205128205128205,
+   "cv": 3.916412630658141,
+   "ciclo_medio_dias": 6.724137931034483
+  },
+  "1511208": {
+   "desc": "Coles R Point Cook",
+   "ciclos": 32,
+   "taxa_dia": 0.15824175824175823,
+   "cv": 0.7450937442728416,
+   "ciclo_medio_dias": 2.84375
+  },
+  "1511209": {
+   "desc": "Bendigo Bank R Werribee",
+   "ciclos": 58,
+   "taxa_dia": 0.08502024291497975,
+   "cv": 1.5939385849197107,
+   "ciclo_medio_dias": 4.258620689655173
+  },
+  "1511210": {
+   "desc": "Wedge St Piazza R Werribee",
+   "ciclos": 52,
+   "taxa_dia": 0.07653429602888087,
+   "cv": 2.3038773330283813,
+   "ciclo_medio_dias": 5.326923076923077
+  },
+  "1511211": {
+   "desc": "Cash Converters R Werribee",
+   "ciclos": 40,
+   "taxa_dia": 0.1782178217821782,
+   "cv": 0.4570667122246689,
+   "ciclo_medio_dias": 2.525
+  },
+  "1511212": {
+   "desc": "General Practice R Werribee",
+   "ciclos": 52,
+   "taxa_dia": 0.15302013422818792,
+   "cv": 0.8129977834166027,
+   "ciclo_medio_dias": 2.8653846153846154
+  },
+  "1511213": {
+   "desc": "79 Watton St R Werribee",
+   "ciclos": 61,
+   "taxa_dia": 0.13964497041420118,
+   "cv": 0.8178642950956059,
+   "ciclo_medio_dias": 2.7704918032786887
+  },
+  "1511214": {
+   "desc": "Ally Fashion R Point Cook",
+   "ciclos": 20,
+   "taxa_dia": 0.009022556390977442,
+   "cv": 9.852155670479947,
+   "ciclo_medio_dias": 13.3
+  },
+  "1511215": {
+   "desc": "Woolworths R Point Cook",
+   "ciclos": 43,
+   "taxa_dia": 0.15447154471544716,
+   "cv": 0.7609164435299648,
+   "ciclo_medio_dias": 2.86046511627907
+  },
+  "1511216": {
+   "desc": "Hockingstuart R Werribee",
+   "ciclos": 48,
+   "taxa_dia": 0.11069182389937107,
+   "cv": 1.548776821137871,
+   "ciclo_medio_dias": 3.3125
+  },
+  "1511217": {
+   "desc": "Ballan House R Werribee",
+   "ciclos": 15,
+   "taxa_dia": 0.07027027027027027,
+   "cv": 1.8174600867538244,
+   "ciclo_medio_dias": 4.933333333333334
+  },
+  "1511218": {
+   "desc": "Aldi R Point Cook",
+   "ciclos": 65,
+   "taxa_dia": 0.1687150837988827,
+   "cv": 0.6642674024238001,
+   "ciclo_medio_dias": 2.753846153846154
+  },
+  "1511219": {
+   "desc": "Proven Training R Werribee",
+   "ciclos": 62,
+   "taxa_dia": 0.14947368421052631,
+   "cv": 0.7107786138086675,
+   "ciclo_medio_dias": 3.064516129032258
+  },
+  "1511220": {
+   "desc": "Nandos R Point Cook",
+   "ciclos": 77,
+   "taxa_dia": 0.1136531365313653,
+   "cv": 1.1886223853692282,
+   "ciclo_medio_dias": 3.5194805194805197
+  },
+  "1511221": {
+   "desc": "Park Hotel R Werribee",
+   "ciclos": 54,
+   "taxa_dia": 0.10333333333333335,
+   "cv": 1.7985755759672863,
+   "ciclo_medio_dias": 4.444444444444445
+  }
+ }
+}
