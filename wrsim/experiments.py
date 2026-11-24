@@ -25,7 +25,7 @@ CMP = ("B1", "B2", "P0", "P2")          # políticas das sensibilidades
 
 def _city_and_routes(p: Params):
     key = (p.city_seed, p.n_points, p.urban_pop, p.grid_nx, p.grid_ny, p.gen_scale,
-           p.density_kg_m3, p.sizing_safety, p.center_cap_mult, p.pop_sigma, p.osm_file, p.census_file, p.census_mun, tuple(p.osm_center), tuple(p.landfill_latlon))
+           p.density_kg_m3, p.sizing_safety, p.center_cap_mult, p.pop_sigma, p.osm_file, p.census_file, p.census_mun, tuple(p.osm_center), tuple(p.landfill_latlon), tuple(p.exit_latlon or ()))
     if key not in _CACHE:
         c = build_city(p)
         _CACHE[key] = (c, static_routes(c, p))

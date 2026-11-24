@@ -165,6 +165,12 @@ def build_city(p: Params) -> City:
         same = road[(coords[road] @ far) / np.maximum(dr, 1e-9) > 0.8]
         edge_r = 1.1 * np.percentile(np.linalg.norm(coords[cross], axis=1), 95)
         exit_ = int(same[np.argmin(np.abs(np.linalg.norm(coords[same], axis=1) - edge_r))])
+        if p.exit_latlon:
+            # saída medida: nó da malha mais próximo do ponto em que a rota do OSRM cruza a borda urbana
+            lat0, lon0 = p.osm_center
+            q = np.array([(p.exit_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
+                          (p.exit_latlon[0] - lat0) * 110540.0])
+            exit_ = int(np.argmin(np.linalg.norm(coords - q, axis=1)))
         pop_w, pop_total = None, None
         if p.census_file:
             # pontos só em cruzamentos dentro dos setores urbanos do Censo 2022, cerca de
