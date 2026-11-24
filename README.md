@@ -71,6 +71,13 @@ python -m wrsim.experiments_real --out results_real --workers 8
 python -m wrsim.analysis_real --res results_real --data results --fig figures
 ```
 
+`wrsim/experiments_real_extra.py` completa a varredura do CV até 60 replicações por ponto e testa a robustez às premissas sem dado público: quatro sorteios alternativos da posição dos pontos, densidade de pontos (cerca de 85 e 43 hab./ponto) e heterogeneidade da geração entre pontos (`pop_sigma` 0 e 0,7). A análise junta as duas rodadas, calcula intervalos por reamostragem (bootstrap) e decompõe a economia anual (horas normais, horas em turnos extras, diesel e manutenção).
+
+```bash
+python -m wrsim.experiments_real_extra --out results_real_extra --workers 8
+python -m wrsim.analysis_real --res results_real --extra results_real_extra --data results --fig figures
+```
+
 O parâmetro `landfill_latlon` posiciona a saída da cidade no nó da malha mais próximo da direção do destino.
 
 ## Estrutura
