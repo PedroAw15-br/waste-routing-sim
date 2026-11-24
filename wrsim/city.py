@@ -130,7 +130,7 @@ def build_city(p: Params) -> City:
     c1 = p.container_l / 1000.0 * p.density_kg_m3
     gap = np.where(central, 2, 3)
     n_cont = np.clip(np.ceil(p.sizing_safety * mean_kg * gap / c1), 1, p.max_containers).astype(int)
-    cap_kg = n_cont * c1
+    cap_kg = n_cont * c1 * np.where(central, p.center_cap_mult, 1.0)
 
     # matriz de distâncias mínimas (Dijkstra) entre pontos, garagem e saída
     A = csr_matrix((edge_len, (edges[:, 0], edges[:, 1])), shape=(V, V))

@@ -14,7 +14,12 @@ Este repositório acompanha o artigo *"Sensoriamento IoT e Roteirização Dinâm
   - **B1** – rota fixa diária, todos os pontos.
   - **B2** – rota fixa setorizada: centro diariamente, setor A às segundas, quartas e sextas, setor B às terças, quintas e sábados.
   - **P1** – rota dinâmica por limiar fixo (θ = 70%).
-  - **P2** – rota dinâmica preditiva: coleta o ponto se o limiar for atingido **ou** se o risco de transbordo até a próxima oportunidade de coleta superar o quantil *z*, considerando o calendário.
+  - **P0** – preditiva **sem sensores**: mesma regra de P2, com o nível estimado pela taxa média histórica de cada ponto e pelo calendário, a partir da última coleta.
+  - **P0S** – como P0, mas só com a taxa média do setor.
+  - **P2** – rota dinâmica preditiva com sensores: coleta o ponto se o limiar for atingido **ou** se o risco de transbordo até a próxima oportunidade de coleta superar o quantil *z*, considerando o calendário. `sensor_share < 1` sensoriza só parte dos pontos.
+  - **P2I** – P2 com sensores ideais (sem erro e sem perda).
+  - **P2M** – P2 com inclusão oportunista (*may-go*) de pontos próximos.
+- **Pré-registro**: `PREREGISTRO.md` descreve a métrica *S* (fração do ganho que depende dos sensores) e as faixas de interpretação, fixadas antes de rodar os experimentos.
 - **Roteirização**: distâncias pelo Algoritmo de Dijkstra (SciPy), sequência por algoritmo genético memético (OX, mutação por troca, torneio, elitismo e 2-opt nos filhos) e divisão em viagens pelo procedimento Split (Beasley, 1983; Prins, 2004). Para validação, o AG é comparado ao OR-Tools (*Guided Local Search*).
 - **Verificação**: cada simulação confere o balanço de massa (gerado = coletado + transbordado + variação do estoque).
 - **Economia**: custo total de propriedade e VPL em 5 anos (10% a.a.), com a fração λ dos turnos-equipe liberados que é convertida em economia e o ponto de equilíbrio λ\*.
@@ -41,16 +46,19 @@ Requer Python 3.10 ou superior.
 
 ```bash
 pip install -r requirements.txt
-python -m wrsim.experiments --out results            # 600 simulações + benchmark (~11 min com 2 núcleos)
-python -m wrsim.analysis --res results --fig figures  # tabelas (summary.json) e figuras
+python -m wrsim.experiments --out results --workers 12   # 1.560 simulações + benchmark (~21 min com 12 processos)
+python -m wrsim.analysis --res results --fig figures     # tabelas (summary.json) e figuras
 ```
 
 Opções de `wrsim.experiments`:
 
 - `--reps`: replicações do experimento principal (padrão 30).
 - `--sens-reps`: replicações por cenário de sensibilidade (padrão 10).
-- `--workers`: processos paralelos (padrão 2).
+- `--workers`: processos paralelos (padrão 4).
 - `--bench-time`: tempo do OR-Tools por instância, em segundos (padrão 20).
+- `--skip-bench`: não roda o benchmark (reaproveita um `benchmark.json` existente).
+
+`rerun_tag.py` roda de novo um único cenário de sensibilidade e substitui os resultados dele em `sim_results.json`.
 
 Os resultados são determinísticos dadas as sementes. Variações mínimas podem ocorrer apenas no benchmark do OR-Tools, que tem limite de tempo de relógio.
 

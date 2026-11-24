@@ -25,6 +25,7 @@ class Params:
     container_l: float = 1000.0  # volume de cada contêiner (L)
     density_kg_m3: float = 180.0 # massa específica dos resíduos soltos no contêiner
     sizing_safety: float = 1.2   # folga no dimensionamento dos contêineres
+    center_cap_mult: float = 1.0 # capacidade extra no centro (alternativa sem sensores)
     max_containers: int = 4
 
     # ---------------- Geração de resíduos ----------------
@@ -32,6 +33,7 @@ class Params:
     cv_cen: float = 0.45         # coeficiente de variação diário (centro)
     weekend_factor: float = 1.10 # geração relativa em sábados e domingos
     peak_mult: float = 1.40      # multiplicador nos eventos de pico (centro)
+    use_peaks: bool = True       # False = período sem eventos de pico (sensibilidade)
     gen_scale: float = 1.0       # escala global (análise de sensibilidade)
 
     # ---------------- Calendário ----------------
@@ -61,6 +63,7 @@ class Params:
     sensor_sigma: float = 0.05   # desvio-padrão do erro de leitura (fração da altura)
     sensor_miss: float = 0.05    # prob. de não haver leitura válida na manhã
     ewma_alpha: float = 0.25
+    sensor_share: float = 1.0    # fração dos pontos com sensor em P2 (os demais seguem P0)
 
     # ---------------- Políticas dinâmicas ----------------
     threshold: float = 0.70
@@ -68,6 +71,8 @@ class Params:
     fleet_max_shifts: int = 0    # 0 = sem limite; >0 = turnos (caminhões) disponíveis por dia
     use_calendar: bool = True    # previsão considera perfil semanal e eventos agendados
     event_mult_forecast: float = 1.30  # estimativa do planejador para o pico (real = 1.40)
+    maygo_fill: float = 0.70     # P2M: nível previsto mínimo para inclusão oportunista
+    maygo_km: float = 0.30       # P2M: distância máxima (km) a um ponto já selecionado
 
     # ---------------- Algoritmo Genético ----------------
     ga_pop: int = 100
