@@ -188,26 +188,9 @@ def main():
     fig.tight_layout(rect=(0, 0.13, 1, 1)); os.makedirs(a.fig, exist_ok=True)
     fig.savefig(os.path.join(a.fig, "fig11_limiar_variabilidade.png"), bbox_inches="tight", facecolor="white"); plt.close(fig)
 
-    # figura: as duas malhas reais
-    fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.6))
-    for ax, name in zip(axes, CASES):
-        p, c = cities[name]
-        xy = c.coords / 1000
-        for e0, e1 in c.edges:
-            ax.plot(xy[[e0, e1], 0], xy[[e0, e1], 1], color="#c9c8c2", lw=0.35, zorder=1)
-        pts = xy[c.point_node]
-        for s, col, mk in ((0, C[1], "D"), (1, C[0], "o"), (2, C[2], "s")):
-            m = c.sector == s
-            ax.scatter(pts[m, 0], pts[m, 1], s=3 + 3 * c.n_cont[m], c=col, marker=mk, linewidths=0, zorder=3)
-        ax.scatter(*xy[c.garage_node], s=45, marker="P", c=INK, zorder=4)
-        ax.scatter(*xy[c.exit_node], s=45, marker="X", c=C[7], zorder=4)
-        allp = np.vstack([pts, xy[[c.garage_node, c.exit_node]]])
-        ax.set_xlim(allp[:, 0].min() - 0.3, allp[:, 0].max() + 0.3); ax.set_ylim(allp[:, 1].min() - 0.3, allp[:, 1].max() + 0.3)
-        ax.set_aspect("equal"); ax.grid(False); ax.set_title(NOME[name], fontsize=8.5); ax.set_xlabel("x (km)")
-    axes[0].set_ylabel("y (km)")
-    fig.text(0.99, 0.0, "Malhas: © colaboradores do OpenStreetMap (ODbL)", ha="right", fontsize=6, color=INK2)
-    fig.tight_layout()
-    fig.savefig(os.path.join(a.fig, "fig9_casos_reais.png"), bbox_inches="tight", facecolor="white"); plt.close(fig)
+    # figura: mapa dos casos reais (malhas, setores, garagem, saída, rotas e aterros)
+    from .fig_casos_reais import render
+    render(a.data, os.path.join(a.fig, "fig9_casos_reais.png"))
 
     json.dump(out, open(os.path.join(a.res, "summary_real.json"), "w"), indent=1, default=float)
     for name, o in out.items():

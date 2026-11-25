@@ -79,6 +79,7 @@ python -m wrsim.analysis_real --res results_real --extra results_real_extra --da
 ```
 
 Locais dos casos reais: os aterros usam as coordenadas declaradas ao SINISA 2023 (Santa Helena: Aterro Sanitário Paraná Ambiental, em Cascavel; São Miguel do Iguaçu: aterro controlado municipal), conferidas em imagem de satélite; as garagens (`garage_latlon`) são a base local da empresa contratada em Santa Helena e o Pátio de Máquinas da Prefeitura de São Miguel do Iguaçu, localizados no Google Maps. A saída urbana (`exit_latlon`) é o ponto em que a rota do OSRM até o aterro cruza a borda urbana do modelo, e `landfill_km` é o restante dessa rota (Santa Helena: PR-495, ao sul, 129,1 km de 131,6 km; São Miguel do Iguaçu: PR-497, ao norte, 8,1 km de 11,7 km). A Figura 6 (compromisso horas × transbordos) é gerada por `python -m wrsim.fig_fronteira --summary results/summary.json --out figures/fig6_fronteira.png`.
+Precisão dos locais: saída e garagem são presas à malha por projeção sobre a via mais próxima (`_attach` em `city.py`), e não pelo nó mais próximo; a garagem fora das vias mapeadas recebe um acesso de 1,3 × a distância em linha reta. O centro comercial (`center_latlon`) é a prefeitura de cada município, onde se concentra o comércio no OpenStreetMap; os pontos a até 450 m dela formam o setor coletado diariamente na B2. As rotas do OSRM ficam em `results/rota_osrm_*.json`, e a Figura 9 (mapa dos casos reais) é gerada por `python -m wrsim.fig_casos_reais --data results --out figures/fig9_casos_reais.png`.
 
 ## Estrutura
 

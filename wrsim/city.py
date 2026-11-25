@@ -151,6 +151,10 @@ def build_city(p: Params) -> City:
         coords, edges, edge_len, cross, road = _build_graph_osm(p)
         V = len(coords)
         center = np.zeros(2)                      # origem = centro urbano informado
+        if p.center_latlon:                       # centro comercial medido (prefeitura)
+            lat0, lon0 = p.osm_center
+            center = np.array([(p.center_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
+                               (p.center_latlon[0] - lat0) * 110540.0])
         # saída para o aterro: ponto em que a rodovia principal (na direção do seu
         # trecho mais longo) cruza a borda urbana, tomada como 1,1 × o percentil 95
         # da distância dos cruzamentos urbanos ao centro;
@@ -166,17 +170,17 @@ def build_city(p: Params) -> City:
         edge_r = 1.1 * np.percentile(np.linalg.norm(coords[cross], axis=1), 95)
         exit_ = int(same[np.argmin(np.abs(np.linalg.norm(coords[same], axis=1) - edge_r))])
         if p.exit_latlon:
-            # saída medida: nó da malha mais próximo do ponto em que a rota do OSRM cruza a borda urbana
+            # saída medida: ponto em que a rota do OSRM cruza a borda urbana, projetado sobre a via
             lat0, lon0 = p.osm_center
             q = np.array([(p.exit_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
                           (p.exit_latlon[0] - lat0) * 110540.0])
-            exit_ = int(np.argmin(np.linalg.norm(coords - q, axis=1)))
+            coords, edges, edge_len, exit_ = _attach(coords, edges, edge_len, q, access_factor=None)
         gar_fix = None
         if p.garage_latlon:
             lat0, lon0 = p.osm_center
             q = np.array([(p.garage_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
                           (p.garage_latlon[0] - lat0) * 110540.0])
-            gar_fix = int(np.argmin(np.linalg.norm(coords - q, axis=1)))
+            coords, edges, edge_len, gar_fix = _attach(coords, edges, edge_len, q, access_factor=1.3)
         pop_w, pop_total = None, None
         if p.census_file:
             # pontos só em cruzamentos dentro dos setores urbanos do Censo 2022, cerca de
@@ -218,6 +222,39 @@ def build_city(p: Params) -> City:
     point_node = np.sort(rng.choice(candidates, size=p.n_points, replace=False))
     return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center)
 
+
+
+def _attach(coords, edges, edge_len, q, access_factor=None):
+    """Prende o ponto q (metros) à malha: projeta q no trecho de via mais próximo e divide esse
+    trecho, criando um nó exatamente sobre a via. Com access_factor, cria ainda um nó em q
+    ligado à projeção por um acesso de comprimento access_factor × distância em linha reta
+    (garagem fora das vias mapeadas). Devolve (coords, edges, edge_len, nó)."""
+    a, b = coords[edges[:, 0]], coords[edges[:, 1]]
+    ab = b - a
+    t = np.clip(((q - a) * ab).sum(1) / np.maximum((ab * ab).sum(1), 1e-9), 0.0, 1.0)
+    proj = a + t[:, None] * ab
+    k = int(np.argmin(np.linalg.norm(proj - q, axis=1)))
+    tk, pk = float(t[k]), proj[k]
+    u, v = int(edges[k, 0]), int(edges[k, 1])
+    if tk <= 1e-6:
+        node = u
+    elif tk >= 1 - 1e-6:
+        node = v
+    else:
+        node = len(coords)
+        coords = np.vstack([coords, pk])
+        L = float(edge_len[k])
+        keep = np.ones(len(edges), dtype=bool); keep[k] = False
+        edges = np.vstack([edges[keep], [[u, node], [node, v]]])
+        edge_len = np.concatenate([edge_len[keep], [tk * L, (1 - tk) * L]])
+    d = float(np.linalg.norm(pk - q))
+    if access_factor is not None and d > 5.0:
+        g = len(coords)
+        coords = np.vstack([coords, q])
+        edges = np.vstack([edges, [[node, g]]])
+        edge_len = np.concatenate([edge_len, [access_factor * d]])
+        node = g
+    return coords, edges, edge_len, node
 
 def _census_sectors(p):
     """Setores urbanos do município (Censo 2022) na área da malha: [(polígono em metros, população)]."""
