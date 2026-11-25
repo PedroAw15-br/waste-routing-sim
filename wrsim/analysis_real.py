@@ -22,7 +22,7 @@ from .experiments_real import CASES, CVS, case_params
 NOME = {"santa_helena": "Santa Helena", "sao_miguel": "São Miguel do Iguaçu"}
 # declarado ao SINISA 2023 (coleta indiferenciada urbana)
 SINISA = {"santa_helena": {"massa_t_ano": 3859.8, "pop_urbana": 13842, "compactadores_contratada": 2,
-                           "destino": "Aterro sanitário em Cascavel (PR)", "distancia_km": 114.2},
+                           "destino": "Aterro Sanitário Paraná Ambiental, Cascavel (PR)", "distancia_km": 131.6},
           "sao_miguel": {"pop_urbana": 18818, "compactadores_publicos": 3,
                          "destino": "Aterro controlado municipal", "distancia_km": 11.7}}
 

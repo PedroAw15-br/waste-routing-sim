@@ -171,6 +171,12 @@ def build_city(p: Params) -> City:
             q = np.array([(p.exit_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
                           (p.exit_latlon[0] - lat0) * 110540.0])
             exit_ = int(np.argmin(np.linalg.norm(coords - q, axis=1)))
+        gar_fix = None
+        if p.garage_latlon:
+            lat0, lon0 = p.osm_center
+            q = np.array([(p.garage_latlon[1] - lon0) * 111320.0 * np.cos(np.radians(lat0)),
+                          (p.garage_latlon[0] - lat0) * 110540.0])
+            gar_fix = int(np.argmin(np.linalg.norm(coords - q, axis=1)))
         pop_w, pop_total = None, None
         if p.census_file:
             # pontos só em cruzamentos dentro dos setores urbanos do Censo 2022, cerca de
@@ -187,7 +193,7 @@ def build_city(p: Params) -> City:
                 pts.extend(sel.tolist()); wts.extend([pop / k] * k)
             urban_cross = np.array(sorted(set(pts)))
             opp = urban_cross[(coords[urban_cross] @ coords[exit_]) < 0]
-            garage = int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
+            garage = gar_fix if gar_fix is not None else int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
             keep = [i for i, n in enumerate(pts) if n not in (garage, exit_)]
             order = np.argsort(np.array(pts)[keep])
             point_node = np.array(pts)[keep][order]
@@ -196,7 +202,7 @@ def build_city(p: Params) -> City:
             return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center,
                                 pop_w=pop_w, pop_total=pop_total)
         opp = cross[(coords[cross] @ coords[exit_]) < 0]
-        garage = int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
+        garage = gar_fix if gar_fix is not None else int(opp[np.argmax(np.linalg.norm(coords[opp], axis=1))])
         candidates = np.setdiff1d(cross, [garage, exit_])
         point_node = np.sort(rng.choice(candidates, size=p.n_points, replace=False))
         return _finish_city(p, rng, coords, edges, edge_len, point_node, garage, exit_, center)

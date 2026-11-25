@@ -78,7 +78,7 @@ python -m wrsim.experiments_real_extra --out results_real_extra --workers 8
 python -m wrsim.analysis_real --res results_real --extra results_real_extra --data results --fig figures
 ```
 
-A saída urbana (`exit_latlon`) é o ponto em que a rota do OSRM até o destino cruza a borda urbana do modelo, e `landfill_km` é o restante dessa rota (Santa Helena: PR-495, ao sul, 111,6 km; São Miguel do Iguaçu: PR-497, ao norte, 8,1 km). A garagem, cuja localização não é pública, fica no extremo oposto à saída.
+Locais dos casos reais: os aterros usam as coordenadas declaradas ao SINISA 2023 (Santa Helena: Aterro Sanitário Paraná Ambiental, em Cascavel; São Miguel do Iguaçu: aterro controlado municipal), conferidas em imagem de satélite; as garagens (`garage_latlon`) são a base local da empresa contratada em Santa Helena e o Pátio de Máquinas da Prefeitura de São Miguel do Iguaçu, localizados no Google Maps. A saída urbana (`exit_latlon`) é o ponto em que a rota do OSRM até o aterro cruza a borda urbana do modelo, e `landfill_km` é o restante dessa rota (Santa Helena: PR-495, ao sul, 129,1 km de 131,6 km; São Miguel do Iguaçu: PR-497, ao norte, 8,1 km de 11,7 km). A Figura 6 (compromisso horas × transbordos) é gerada por `python -m wrsim.fig_fronteira --summary results/summary.json --out figures/fig6_fronteira.png`.
 
 ## Estrutura
 

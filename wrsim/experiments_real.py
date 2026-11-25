@@ -1,13 +1,14 @@
 """Casos reais com os parâmetros de operação declarados ao SINISA 2023:
 
-- Santa Helena (PR): coleta indiferenciada terceirizada, 2 caminhões compactadores, destino
-  no aterro sanitário de Cascavel (114 km por estrada, 66 km/h em média pelo OSRM);
-- São Miguel do Iguaçu (PR): coleta por equipe própria, destino no aterro controlado
-  municipal (11,7 km, 58 km/h).
+- Santa Helena (PR): coleta indiferenciada terceirizada (Terceirizemais/Costa Oeste, base na Av. Brasil, 390),
+  2 caminhões compactadores, destino no Aterro Sanitário Paraná Ambiental, em Cascavel (coordenadas do
+  SINISA e do Google Maps; 131,6 km por estrada, 65 km/h em média pelo OSRM);
+- São Miguel do Iguaçu (PR): coleta por equipe própria (Pátio de Máquinas da Prefeitura), destino no
+  aterro controlado municipal (coordenadas do SINISA; 11,7 km, 58 km/h).
 
 A saída urbana (exit_latlon) é o ponto em que a rota do OSRM até o destino cruza a borda urbana
 do modelo (1,1 × percentil 95 da distância dos cruzamentos ao centro); landfill_km é o restante da
-rota a partir desse ponto (Santa Helena: 114,2 − 2,5 km, pela PR-495 ao sul; São Miguel do Iguaçu:
+rota a partir desse ponto (Santa Helena: 131,6 − 2,5 km, pela PR-495 ao sul; São Miguel do Iguaçu:
 11,7 − 3,7 km, pela PR-497).
 
 Para cada caso: experimento principal, curva em z de P0 e P2 (métrica S) e varredura da
@@ -29,12 +30,12 @@ from .experiments import _task
 CASES = {
     "santa_helena": dict(osm_file="results/osm_santa_helena.json", census_file="results/setores_santa_helena_2022.geojson",
                          census_mun="4123501", osm_center=(-24.8591735, -54.3328813),
-                         landfill_latlon=(-24.9555, -53.4552), exit_latlon=(-24.877271, -54.330947),
-                         landfill_km=111.6, v_hwy_kmh=66.0),
+                         landfill_latlon=(-24.9839443, -53.2963925), exit_latlon=(-24.877271, -54.330947),
+                         garage_latlon=(-24.8574908, -54.3342258), landfill_km=129.1, v_hwy_kmh=65.2),
     "sao_miguel": dict(osm_file="results/osm_sao_miguel.json", census_file="results/setores_sao_miguel_2022.geojson",
                        census_mun="4125704", osm_center=(-25.349171, -54.240498),
                        landfill_latlon=(-25.2626907, -54.2377393), exit_latlon=(-25.3241, -54.257488),
-                       landfill_km=8.1, v_hwy_kmh=58.0),
+                       garage_latlon=(-25.3606574, -54.2381614), landfill_km=8.1, v_hwy_kmh=58.0),
 }
 CVS = (0.20, 0.30, 0.45, 0.60, 0.75, 0.90)
 

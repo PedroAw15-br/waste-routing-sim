@@ -49,6 +49,7 @@ class Params:
 
     # ---------------- Frota e operação ----------------
     truck_capacity_kg: float = 7000.0
+    garage_latlon: tuple = None  # (lat, lon) da garagem informada (Google Maps); None = extremo oposto à saída
     exit_latlon: tuple = None    # ponto em que a rota real ao destino cruza a borda urbana (OSRM)
     landfill_km: float = 15.0    # distância (só ida) da saída urbana ao aterro
     v_urban_kmh: float = 18.0
