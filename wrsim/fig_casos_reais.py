@@ -26,12 +26,16 @@ SECT = {0: ("#eb6834", "D", "Centro comercial: coleta diária"),
         2: ("#1baf7a", "s", "Setor B: ter., qui. e sáb.")}
 INFO = {
     "santa_helena": dict(nome="Santa Helena", garagem="Garagem\n(base da contratada)", saida="Saída\n(PR-495)",
-                         destino="Aterro Sanitário\nParaná Ambiental (Cascavel)", curto="Aterro Paraná Ambiental,\nCascavel", km=131.6,
+                         destino="Aterro Sanitário\nParaná Ambiental\n(Cascavel)", curto="Aterro Paraná Ambiental,\nCascavel", km=131.6,
+                         garagem_txt="base local da empresa contratada", rodovia="PR-495 (sul)",
+                         destino_txt="Aterro Paraná Ambiental, Cascavel",
                          # rótulos (dx, dy em km; alinhamento), posicionados à mão para não colidir
                          g_lab=(-0.35, 0.40, "right", "bottom"), e_lab=(-0.30, 0.05, "right", "bottom"),
                          r_lab=(-0.25, 0.05, "right", "bottom")),
     "sao_miguel": dict(nome="São Miguel do Iguaçu", garagem="Garagem\n(Pátio de Máquinas)", saida="Saída\n(PR-497)",
                        destino="Aterro controlado\nmunicipal", curto="Aterro controlado\nmunicipal", km=11.7,
+                       garagem_txt="Pátio de Máquinas da Prefeitura", rodovia="PR-497 (norte)",
+                       destino_txt="aterro controlado municipal",
                        g_lab=(0.30, -0.20, "left", "top"), e_lab=(0.30, -0.10, "left", "top"),
                        r_lab=(0.30, -0.02, "left", "top")),
 }
@@ -45,14 +49,23 @@ def _route_xy(path, p):
     return np.c_[(g[:, 0] - lon0) * kx, (g[:, 1] - lat0) * 110540.0], g, r["distance"] / 1000
 
 
-def _clip_after(xy, start, box):
-    """Trecho da rota a partir do ponto mais próximo da saída até sair do quadro."""
+def _clip_after(xy, start, box, margin=0.3):
+    """Trecho da rota a partir da saída até a margem interna do quadro (a seta termina dentro dele)."""
+    inner = (box[0] + margin, box[1] - margin, box[2] + margin, box[3] - margin)
+    inside = lambda q: inner[0] <= q[0] <= inner[1] and inner[2] <= q[1] <= inner[3]
     i = int(np.argmin(np.linalg.norm(xy - start, axis=1)))
-    seg = [start]
+    seg = [np.asarray(start, float)]
     for q in xy[i + 1:]:
-        seg.append(q)
-        if not (box[0] <= q[0] <= box[1] and box[2] <= q[1] <= box[3]):
+        if not inside(q):
+            a = seg[-1]
+            # recua sobre o segmento até a margem interna
+            for t in np.linspace(1, 0, 101):
+                r = a + t * (q - a)
+                if inside(r):
+                    seg.append(r)
+                    break
             break
+        seg.append(q)
     return np.array(seg)
 
 
@@ -100,13 +113,8 @@ def city_panel(ax, name, data, half_w, half_h, letter, pre):
         if len(seg) >= 2:
             a, b = seg[-2], seg[-1]
             d = (b - a) / max(np.linalg.norm(b - a), 1e-9)
-            tip = np.array([np.clip(b[0], box[0] + 0.05, box[1] - 0.05), np.clip(b[1], box[2] + 0.05, box[3] - 0.05)])
-            ax.annotate("", xy=tip, xytext=tip - 0.35 * d, arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.4), zorder=4)
-            kmtxt = f"{info['km']:.1f}".replace(".", ",")
-            lab = f"{info['curto']}:\n{kmtxt} km por estrada"
-            dx, dy, ha, va = info["r_lab"]
-            ax.text(tip[0] + dx, tip[1] + dy, lab, fontsize=6.3, color=INK, ha=ha, va=va,
-                    zorder=5, bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.9))
+            ax.annotate("", xy=b, xytext=b - 0.3 * d, arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.6,
+                        mutation_scale=11), zorder=4)
     # pontos de coleta por setor (tamanho ~ contêineres)
     pts = xy[c.point_node]
     for s, (col, mk, _) in SECT.items():
@@ -117,32 +125,31 @@ def city_panel(ax, name, data, half_w, half_h, letter, pre):
     ax.scatter(*g, s=70, marker="s", c=INK, edgecolors="white", linewidths=1.0, zorder=6)
     ax.scatter(*e, s=70, marker="o", c="white", edgecolors=INK, linewidths=1.6, zorder=6)
 
-    def place(pt, text, spec):
-        dx, dy, ha, va = spec
-        ax.annotate(text, pt, xytext=(pt[0] + dx, pt[1] + dy),
-                    fontsize=6.4, color=INK, weight="bold", ha=ha, va=va, zorder=7,
-                    bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.85),
-                    arrowprops=dict(arrowstyle="-", color=INK, lw=0.6))
-    place(g, info["garagem"], info["g_lab"])
-    place(e, info["saida"], info["e_lab"])
-    # escala e norte
-    sx, sy = box[0] + 0.25, box[2] + 0.25
-    ax.plot([sx, sx + 1.0], [sy, sy], color=INK, lw=2.2, solid_capstyle="butt", zorder=7)
-    ax.text(sx + 0.5, sy + 0.08, "1 km", fontsize=6.5, color=INK, ha="center", va="bottom", zorder=7)
-    nx_, ny_ = box[1] - 0.25, box[3] - 0.55
-    ax.annotate("", xy=(nx_, ny_ + 0.35), xytext=(nx_, ny_), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
-    ax.text(nx_, ny_ + 0.4, "N", fontsize=7.5, color=INK, ha="center", va="bottom", weight="bold")
-    ax.set_xlim(box[0], box[1]); ax.set_ylim(box[2], box[3])
+    # escala e norte, nos cantos livres
+    bx0, bx1, by0, by1 = box
+    sx, sy = bx0 + 0.3, by0 + 0.3
+    ax.plot([sx, sx + 1.0], [sy, sy], color=INK, lw=2.0, solid_capstyle="butt", zorder=7)
+    ax.text(sx + 0.5, sy + 0.1, "1 km", fontsize=6.5, color=INK, ha="center", va="bottom", zorder=7)
+    nx_, ny_ = bx1 - 0.3, by1 - 0.75
+    ax.annotate("", xy=(nx_, ny_ + 0.4), xytext=(nx_, ny_), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
+    ax.text(nx_, ny_ + 0.45, "N", fontsize=7.5, color=INK, ha="center", va="bottom", weight="bold")
+    ax.set_xlim(bx0, bx1); ax.set_ylim(by0, by1)
     ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([])
     for sp in ax.spines.values():
-        sp.set_color("#c3c2b7"); sp.set_linewidth(0.6)
-    ax.set_title(f"({letter}) {info['nome']}: {c.n} pontos, {int(c.n_cont.sum())} contêineres", fontsize=8, loc="left")
+        sp.set_visible(True); sp.set_color("#c3c2b7"); sp.set_linewidth(0.6)
+    ax.set_title(f"({letter}) {info['nome']}", fontsize=8.5, loc="left", weight="bold")
+    kmtxt = f"{info['km']:.1f}".replace(".", ",")
+    ax.set_xlabel(f"{c.n} pontos de coleta e {int(c.n_cont.sum())} contêineres\n"
+                  f"Garagem: {info['garagem_txt']}\n"
+                  f"Saída pela {info['rodovia']}\n"
+                  f"Destino: {info['destino_txt']} ({kmtxt} km)",
+                  fontsize=6.5, color=INK2, linespacing=1.35, labelpad=5)
     return c
 
 
 def region_panel(ax, data):
     LAB = {  # posições dos rótulos (graus) escolhidas para não cruzar rotas nem marcadores
-        "santa_helena": dict(cid=(0.025, 0.012, "left", "bottom"), aterro=(0.0, -0.03, "center", "top"),
+        "santa_helena": dict(cid=(0.025, 0.012, "left", "bottom"), aterro=(0.035, 0.0, "left", "center"),
                              km=(-53.86, -25.135, "center", "top")),
         "sao_miguel": dict(cid=(0.025, -0.006, "left", "top"), aterro=(0.025, 0.0, "left", "center"),
                            km=(-54.275, -25.305, "right", "center")),
@@ -163,14 +170,14 @@ def region_panel(ax, data):
         ax.text(x, y, f"{km:.1f} km".replace(".", ","), fontsize=6.4, color=INK2, ha=ha, va=va, zorder=6)
     ax.scatter(-53.4552, -24.9555, s=18, c=MUTED, zorder=3)
     ax.text(-53.4552, -24.9555 + 0.02, "Cascavel", fontsize=6.3, color=INK2, ha="center", va="bottom")
-    ax.set_xlim(-54.42, -53.12); ax.set_ylim(-25.40, -24.80)
+    ax.set_xlim(-54.42, -52.98); ax.set_ylim(-25.40, -24.80)
     ax.set_aspect(1 / np.cos(np.radians(25.1)))
     ax.set_xlabel("Longitude (°)", fontsize=7); ax.set_ylabel("Latitude (°)", fontsize=7)
     ax.tick_params(labelsize=6.5)
     ax.grid(color="#e1e0d9", lw=0.4)
     for sp in ax.spines.values():
-        sp.set_color("#c3c2b7"); sp.set_linewidth(0.6)
-    ax.set_title("(c) Situação regional: rotas do OSRM até os aterros declarados ao SINISA", fontsize=8, loc="left")
+        sp.set_visible(True); sp.set_color("#c3c2b7"); sp.set_linewidth(0.6)
+    ax.set_title("(c) Rotas reais até os aterros declarados ao SINISA", fontsize=8.5, loc="left", weight="bold")
 
 
 def main():
@@ -186,8 +193,8 @@ def render(data, out):
     pre = {n: extent(n, a.data) for n in ("santa_helena", "sao_miguel")}
     half_w = max((e[1] - e[0]) / 2 for *_, e in pre.values()) + 0.45
     half_h = max((e[3] - e[2]) / 2 for *_, e in pre.values()) + 0.9
-    fig = plt.figure(figsize=(7.0, 7.4))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 0.72], hspace=0.14, wspace=0.05)
+    fig = plt.figure(figsize=(7.0, 8.1))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 0.72], hspace=0.36, wspace=0.08)
     ax1, ax2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
     city_panel(ax1, "santa_helena", a.data, half_w, half_h, "a", pre["santa_helena"])
     city_panel(ax2, "sao_miguel", a.data, half_w, half_h, "b", pre["sao_miguel"])
